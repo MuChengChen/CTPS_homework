@@ -12,8 +12,8 @@ def HW2(text, user_id):  # text => 接收到的訊息字串;   user_id => User�
 
     department = department_table.get((text.split(":")[2])[0:2])  # 學號對應的系所
     route = route_table.get((text.split(":")[2])[5:6])  # 入學管道
-    error=department_table.get((text.split(":")[2])[0:2])
-    if (error == None):
+
+    if ( department== None):
         return ('找不到這個系所', student_data)
     else:
         return ('您的系所是 ' + department + ' ，入學管道是 ' + route, student_data)
