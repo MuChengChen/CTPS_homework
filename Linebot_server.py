@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 
 from flask import Flask, request, abort
@@ -6,7 +7,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
-from apscheduler.schedulers.background import BackgroundScheduler
+
 
 import configparser
 
@@ -16,16 +17,19 @@ import os
 
 app = Flask(__name__)  # 建立 Flask 物件
 
+
 config = configparser.ConfigParser()
 config.read('config.ini')
 
 line_bot_api = LineBotApi(config.get('line-bot', 'channel-access-token'))
 handler = WebhookHandler(config.get('line-bot', 'channel-secret'))
 
+
 maskdata = list()
 
 
 @app.route("/callback", methods=['POST'])  # 路由
+
 def callback():
     # get X-Line-Signature header value
     signature = request.headers['X-Line-Signature']
@@ -64,7 +68,6 @@ def handle_message(event):
         response = HW.HW4_2(event.source.user_id)
     elif text[0:11] == '請問全班有幾位同學拿到' and text[-3:] == '的成績':
         response = HW.HW4_3(event.message.text, event.source.user_id)
-
     else:
         response = '格式錯誤！'
 
