@@ -197,6 +197,7 @@ def HW4_2(user_id):
     RegisteredData_path = './registered_data.json'
     reply="已繳交作業:"
     store=""
+    counter=0
     with open(RegisteredData_path, 'r', encoding="utf-8-sig") as file:
         register=json.load(file)
 
@@ -204,10 +205,13 @@ def HW4_2(user_id):
         for HW_dict in homework_record:
             if HW_dict['Student_ID']==register[user_id]['Student_ID']:
                 store+=HW_dict['HW']+","
+                counter+=1
             else:
                 continue
-        reply += store[:-1]
-
+        if counter!=0:
+            reply += store[:-1]
+        else:
+            reply="已繳交作業:無"
     else:
         reply = "請先註冊，謝謝！"
 
