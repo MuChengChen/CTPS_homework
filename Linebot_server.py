@@ -68,6 +68,11 @@ def handle_message(event):
         response = HW.HW4_2(event.source.user_id)
     elif text[0:11] == '請問全班有幾位同學拿到' and text[-3:] == '的成績':
         response = HW.HW4_3(event.message.text, event.source.user_id)
+    elif text[0:2]=='計算' and text[-4:]=='等於多少':
+        response = HW.HW6_1(event.message.text, event.source.user_id)
+    elif text[0:3]=='請排出' and text[-8:]=='個小組的報告順序':
+        response=HW.HW6_2(event.message.text, event.source.user_id)
+
     else:
         response = '格式錯誤！'
 

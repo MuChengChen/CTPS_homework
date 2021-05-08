@@ -8,6 +8,8 @@ from ExampleData import department_table  # 系所代號對照資料Dictionary
 from ExampleData import route_table  # 入學管道代號對照資料Dictionary
 import json
 import urllib.request, csv
+import re
+import random
 
 
 # Global variable
@@ -287,13 +289,194 @@ def HW4_3(text, user_id):
 
     return reply
 
+def HW6_1(text,user_id):
+    RegisteredData_path = './registered_data.json'
+    with open(RegisteredData_path, 'r', encoding="utf-8-sig") as file:
+        register = json.load(file)
+    text1=text.split('算')[1].split('等')[0]
+    print(text1)
+    #負數需要括號，正數與0不要括號
+    def MultipleAndDivision(text2):
+        pattern1=re.compile('(\[-){0,1}[\d]+\.*[\d]*]{0,1}[*|/]{1}(\[-){0,1}[\d]+\.*[\d]*]{0,1}')
+        if pattern1.search(text2)!=None:
+            SimpleFormula1=pattern1.search(text2).group()
+            print(SimpleFormula1)
+            SimpleFormulaList1=re.findall('-{0,1}[\d]+\.*[\d]*',SimpleFormula1)
+            print(SimpleFormulaList1)
+            if re.search('[*|/]', SimpleFormula1).group()=='*':
+                result1 = float(SimpleFormulaList1[0])*float(SimpleFormulaList1[1])
+                print(result1)
+            elif re.search('[*|/]', SimpleFormula1).group()=='/':
+                result1 = float(SimpleFormulaList1[0])/float(SimpleFormulaList1[1])
+                print(result1)
+            if result1>=0:
+                nexttext1=re.sub('(\[-){0,1}[\d]+\.*[\d]*]{0,1}[*|/]{1}(\[-){0,1}[\d]+\.*[\d]*]{0,1}',str(result1),text2,count=1,flags=re.A|re.X|re.DOTALL)
+                print(nexttext1)
+            elif result1<0:
+                nexttext1 = re.sub('(\[-){0,1}[0-N]+\.*[0-N]*]{0,1}[*|/]{1}(\[-){0,1}[0-N]+\.*[0-N]*]{0,1}','['+str(result1)+']', text2, count=1, flags=re.A | re.X | re.DOTALL)
+                print(nexttext1)
+            return MultipleAndDivision(nexttext1)
+        elif pattern1.search(text2)==None:
+            return text2
+    def PlusAndMinus(text3):
+        pattern2=re.compile('(\[-){0,1}[\d]+\.*[\d]*]{0,1}[+|-]{1}(\[-){0,1}[\d]+\.*[\d]*]{0,1}')
+        if pattern2.search(text3)!=None:
+            #將最前面的最簡加減算式挑出來
+            SimpleFormula2=pattern2.search(text3).group()
+            print(SimpleFormula2)
+            #以下判別式為避免將減號認為負號所設
+            #若無負數
+            if  re.search('(\[-){1}[\d]+\.*[\d]*]{1}',SimpleFormula2)==None:
+                SimpleFormulaList2=re.findall('[\d]+\.*[\d]*',SimpleFormula2)
+                num1 = SimpleFormulaList2[0]
+                num2 = SimpleFormulaList2[1]
+                print(SimpleFormulaList2)
+            #若負數在前面或是兩個都是負數
+            elif (len(re.findall('\[', SimpleFormula2))==1 and SimpleFormula2[0]!='[') or len(re.findall('\[', SimpleFormula2))==2:
+                SimpleFormulaList2 = re.findall('-{0,1}[\d]+\.*[\d]*', SimpleFormula2)
+                num1 =SimpleFormulaList2[0]
+                num2 =SimpleFormulaList2[1]
+                print(SimpleFormulaList2)
+            #若負數在後面
+            else:
+                num1=re.search('-{1}[\d]+\.*[\d]*', SimpleFormula2).group()
+                a=SimpleFormula2
+                a=re.sub('-{1}[\d]+\.*[\d]*','',a,count=1)
+                num2 = re.search('[\d]+\.*[\d]*', a).group()
+            #將負號去掉以免以下判別式判別錯誤
+            SimpleFormula2 = re.sub('\[-','',SimpleFormula2)
+            SimpleFormula2 = re.sub(']', '', SimpleFormula2)
+            if re.search('[+|-]', SimpleFormula2).group()=='+':
+                result2 = float(num1)+float(num2)
+                print(result2)
+            elif re.search('[+|-]', SimpleFormula2).group()=='-':
+                result2 = float(num1)-float(num2)
+                print(result2)
+            #將原算式替代成答案
+            if result2>=0:
+                nexttext2=re.sub('(\[-){0,1}[\d]+\.*[\d]*]{0,1}[+|-]{1}(\[-){0,1}[\d]+\.*[\d]*]{0,1}',str(result2),text3,count=1,flags=re.A|re.X|re.DOTALL)
+                print(nexttext2)
+            elif result2<0:
+                nexttext2 = re.sub('(\[-){0,1}[\d]+\.*[\d]*]{0,1}[+|-]{1}(\[-){0,1}[\d]+\.*[\d]*]{0,1}','['+str(result2)+']', text3, count=1, flags=re.A | re.X | re.DOTALL)
+                print(nexttext2)
+            return PlusAndMinus(nexttext2)
+        elif pattern2.search(text3)==None:
+            return text3
+    def Power(text4):
+        pattern3=re.compile('(\[-){0,1}[\d]+\.*[\d]*]{0,1}\^{1}(\[-){0,1}[\d]+\.*[\d]*]{0,1}')
+        if pattern3.search(text4)!=None:
+            SimpleFormula3=pattern3.search(text4).group()
+            print(SimpleFormula3)
+            SimpleFormulaList3=re.findall('-{0,1}[\d]+\.*[\d]*',SimpleFormula3)
+            result3 = float(SimpleFormulaList3[0])**float(SimpleFormulaList3[1])
+            if isinstance(result3,complex):
+                return "不接受複數運算"
+            elif result3 is not complex:
+                if result3>=0 :
+                    nexttext3=re.sub('(\[-){0,1}[\d]+\.*[\d]*]{0,1}\^{1}(\[-){0,1}[\d]+\.*[\d]*]{0,1}',str(result3),text4,count=1,flags=re.A|re.X|re.DOTALL)
+                    print(nexttext3)
+                    return Power(nexttext3)
+                elif result3<0 :
+                    nexttext3 = re.sub('(\[-){0,1}[\d]+\.*[\d]*]{0,1}\^{1}(\[-){0,1}[\d]+\.*[\d]*]{0,1}','['+str(result3)+']', text4, count=1, flags=re.A | re.X | re.DOTALL)
+                    print(nexttext3)
+                    return Power(nexttext3)
 
+        elif pattern3.search(text4)==None:
+            return text4
+    def preprocess(text5):
+        pattern4=re.compile('(\(-){1}[\d]+\.*[\d]*\){1}')
+        if pattern4.search(text5)!=None:
+            negnum=pattern4.search(text5).group()
+            negnum=re.sub('\(','[',negnum)
+            negnum = re.sub('\)', ']', negnum)
+            text5=re.sub('(\(-){1}[\d]+\.*[\d]*\){1}',negnum,text5,count=1)
+            print(text5)
+            return preprocess(text5)
+        elif pattern4.search(text5)==None:
+            return text5
+    def changelist(text6):
+        print(re.split('([(|)])', preprocess(text6)))
+        ProcessList = re.split('([(|)])', preprocess(text6))
+        formula = ''
+        if len(ProcessList) == 1:
+            if Power(ProcessList[0]) == "不接受複數運算":
+                return "不接受複數運算"
+            else:
+                return PlusAndMinus(MultipleAndDivision(Power(ProcessList[0])))
+        else:
+            for i in range(len(ProcessList)):
+                print(ProcessList[i])
+                if ProcessList[i] == '' or ProcessList[i] == '(' or ProcessList[i] ==')' or ProcessList[i] =='+' or ProcessList[i] =='-' or ProcessList[i] =='*' or ProcessList[i] =='/' or ProcessList[i] =='^':
+                    print(ProcessList[i])
+                    print(ProcessList)
+                    continue
+                elif ProcessList[i][0] == '+' or ProcessList[i][0] =='-' or ProcessList[i][0] =='*' or ProcessList[i][0] =='/' or ProcessList[i][0] =='^':
+                    ProcessList.insert(i, ProcessList[i][0])
+                    ProcessList[i+1] = ProcessList[i+1][1:]
+                    if ProcessList[i+1][-1] == '+' or ProcessList[i+1][-1] =='-' or ProcessList[i+1][-1] =='*' or ProcessList[i+1][-1] =='/' or ProcessList[i+1][-1] =='^':
+                        ProcessList.insert(i+2, ProcessList[i+1][-1])
+                        ProcessList[i+1] = ProcessList[i+1][:-1]
+                    print(ProcessList[i])
+                    print(ProcessList)
+                    continue
+                elif ProcessList[i][-1] == '+' or ProcessList[i][-1] =='-' or ProcessList[i][-1] =='*' or ProcessList[i][-1] =='/' or ProcessList[i][-1] =='^':
+                    ProcessList.insert(i+1, ProcessList[i][-1])
+                    ProcessList[i] = ProcessList[i][:-1]
+                    if Power(ProcessList[i]) == "不接受複數運算":
+                        return "不接受複數運算"
+                    else:
+                        ProcessList[i] = PlusAndMinus(MultipleAndDivision(Power(ProcessList[i])))
+                        print(ProcessList[i])
+                        print(ProcessList)
+                        continue
+                elif ProcessList[i-1] == '(' and ProcessList[i+1] == ')':
+                    ProcessList[i-1] = ProcessList[i+1] = ''
+                    ProcessList[i] = PlusAndMinus(MultipleAndDivision(Power(ProcessList[i])))
+                    print(ProcessList[i])
+                    print(ProcessList)
+                    continue
+                else :
+                    ProcessList[i] = PlusAndMinus(MultipleAndDivision(Power(ProcessList[i])))
+                    print(ProcessList[i])
+                    print(ProcessList)
+                    continue
+            for i in ProcessList:
+                formula+=i
+            print(formula)
+            return changelist(formula)
+
+    if user_id in register:
+        return changelist(text1)
+
+    else:
+        return "請先註冊，謝謝！"
+
+
+
+def HW6_2(text,user_id):
+    RegisteredData_path = './registered_data.json'
+    num=int(text.split('出')[1].split('個')[0])
+
+    with open(RegisteredData_path, 'r', encoding="utf-8-sig") as file:
+        register = json.load(file)
+    TeamOrderList=[]
+    reply='報告順序:'
+    if user_id in register:
+        if num<=0:
+            return '組別不能少於1組喔'
+        else:
+            for i in range(1,num+1):
+                TeamOrderList.append('第{}組'.format(i))
+            random.shuffle(TeamOrderList)
+            for j in TeamOrderList:
+                reply+=j+"->"
+            return reply[:-2]
+    else:
+        return "請先註冊，謝謝！"
 
 if __name__ == '__main__':
 
-    print(HW4_1(text='請在每週四的12時提醒我作業進度', user_id='your user_id'))
-    print(HW4_2(user_id='your user_id'))
-    print(HW4_3(text='請問全班有幾位同學拿到excellent的成績', user_id='your user_id'))
-
+    print(HW6_2(text='請排出5個小組的報告順序', user_id='Ua7990e553bfd285a45702f6685e6932a'))
+    print(HW6_1(text='計算6*5+4/3+8-5等於多少', user_id='Ua7990e553bfd285a45702f6685e6932a'))
     pass
 
